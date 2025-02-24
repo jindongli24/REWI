@@ -1,0 +1,89 @@
+arch_de: trans # name of the decoder to use. available names can be found in hwr/model/__init__.py
+arch_en: trans # name of the encoder to use. available names can be found in hwr/model/__init__.py
+cache: false # whether to cache the whole dataset into ram
+checkpoint: null # checkpoint to load
+ctc_decoder: best_path # CTC decoder to use. currently only best_path available
+device: cuda
+dir_dataset: null # path to the dataset
+dir_work: null # path to the directory to save results
+epoch: 300
+epoch_warmup: 30
+freq_eval: 5 # frequency to evaluate on val set (epoch)
+freq_log: 300 # frequency to log running process (iteration)
+freq_save: 5 # frequency to to save checkpoints (epoch)
+idx_cv: 0 # cross validation index. defaults to 0 for the first fold of the cross validation
+in_chan: 13
+len_seq: 0 # length of input sequence. 0 for variable input length. defaults to 0 for models allow inputs of any length
+lr: 0.001
+num_cls: 60 # including seperation class for CTC
+num_worker: 16
+ratio_ds: 8 # downsampling ratio between input length and output length
+seed: 42
+sensors: [AF, AR, G, M, F] # sensors of the digipen to use
+size_batch: 64
+size_window: 1 # used only for the padding of inputs for window-based attention backbone with variable input length, otherwise defaults to 1
+test: true # whether to test only
+
+categories:
+  [
+    "",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+    "Ä",
+    "Ö",
+    "Ü",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "ä",
+    "ö",
+    "ü",
+    "ß",
+  ]

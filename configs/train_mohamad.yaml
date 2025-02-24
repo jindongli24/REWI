@@ -1,0 +1,86 @@
+arch_de: mohamad # name of the decoder to use. available names can be found in hwr/model/__init__.py
+arch_en: mohamad # name of the encoder to use. available names can be found in hwr/model/__init__.py
+aug: false # whether to perform data augmentation for train set
+cache: true # whether to cache the whole dataset into ram
+checkpoint: null # checkpoint to load
+ctc_decoder: best_path # CTC decoder to use. currently only best_path available
+device: cuda
+dir_dataset: null # path to the dataset
+dir_work: null # path to the directory to save results
+epoch: 300
+freq_eval: 5 # frequency to evaluate on val set (epoch)
+freq_log: 300 # frequency to log running process (iteration)
+freq_save: 5 # frequency to to save checkpoints (epoch)
+idx_cv: -1 # cross validation fold index. 0 for non-cross validation. -1 for train for all cross-validation folds automatically
+in_chan: 13
+lr: 0.01
+num_cls: 60 # including seperation class for CTC
+num_worker: 16
+seed: 42
+sensors: [AF, AR, G, M, F] # sensors of the digipen to use
+size_batch: 64
+test: false # whether to test only
+
+categories:
+  [
+    "",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+    "Ä",
+    "Ö",
+    "Ü",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "ä",
+    "ö",
+    "ü",
+    "ß",
+  ]

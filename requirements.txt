@@ -1,0 +1,10 @@
+einops
+jiwer
+levenshtein
+loguru
+numpy
+pyyaml
+scipy
+timm
+torch
+thop
