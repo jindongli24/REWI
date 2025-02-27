@@ -3,7 +3,6 @@ import torch.nn as nn
 
 from .ablation import AblaDec, AblaEnc
 from .conv import BLCNN
-from .conv_v2 import BLCNNv2
 from .lstm import LSTM
 from .others.convnext import ConvNeXt
 from .others.mlp_mixer import MLPMixer
@@ -45,8 +44,6 @@ def build_encoder(in_chan: int, arch: str, len_seq: int = 0) -> nn.Sequential:
             return AblaEnc(in_chan, True, True, True, True, True, True, True)
         case 'blcnn':
             return BLCNN(in_chan)
-        case 'blcnnv2':
-            return BLCNNv2(in_chan)
 
 
 def build_decoder(
