@@ -10,14 +10,6 @@ from tqdm import tqdm
 
 from .transforms import AddNoise, Drift, Dropout, TimeWarp
 
-SENSOR = {
-    'AF': [0, 1, 2], # front accelerometer
-    'AR': [3, 4, 5], # rear accelerometer
-    'G': [6, 7, 8], # gyroscope
-    'M': [9, 10, 11], # magnetometer
-    'F': [12], # force sensor
-}
-
 
 class HRDataset(Dataset):
     '''Dataset for handwriting recognition.'''
@@ -26,12 +18,10 @@ class HRDataset(Dataset):
         self,
         path_anno: str,
         categories: list[str],
-        sensors: list[str],
         ratio_ds: int,
-        idx_cv: str | int,
-        size_window: int = 1,
-        aug: bool = False,
+        idx_fold: str | int,
         len_seq: int = 0,
+        aug: bool = False,
         cache: bool = False,
     ) -> None:
         '''Dataset for handwriting recognition.
@@ -39,24 +29,18 @@ class HRDataset(Dataset):
         Args:
             path_anno (str): Path to the annotation file of the dataset.
             categories (list[str]): List of categories.
-            sensors (list[str]): Sensors to use.
             ratio_ds (int): Downsampling ratio of the model.
-            idx_cv (str | int): Fold index for cross validation.
-            size_window (int, optional): Windows size for window-based
-            attention model. Defaults to 1.
-            aug (bool): Whether to augment data. Defaults to False.
-            len_seq (int, optional): Length of sequence to pad. Defaults to 0.
-            cache (bool, optional): Whether to cache the data to speed up the
-            data processing. Defaults to False.
+            idx_fold (str | int): Fold index for cross validation.
+            len_seq (int, optional): Length of the processed sequence. Defaults to 0.
+            aug (bool, optional): Whether to augment data. Defaults to False.
+            cache (bool, optional): Whether to cache the data to speed up the data processing. Defaults to False.
         '''
         self.dir_ds = os.path.dirname(path_anno)
         self.categories = categories
         self.ratio_ds = ratio_ds
-        self.idx_cv = idx_cv
-        self.size_window = size_window
+        self.idx_fold = idx_fold
         self.len_seq = len_seq
         self.cache = cache
-        self.idx_channel = []
 
         self.augs = (
             [
@@ -69,12 +53,9 @@ class HRDataset(Dataset):
             else None
         )
 
-        for sensor in sensors:
-            self.idx_channel.extend(SENSOR[sensor])
-
         with open(path_anno, 'r') as f:
             annos = json.load(f)
-            self.annos = annos['annotations'][str(idx_cv)]
+            self.annos = annos['annotations'][str(idx_fold)]
 
         if cache:
             self.cache = cache
@@ -97,7 +78,6 @@ class HRDataset(Dataset):
         Returns:
             int: Number of data sequences.
         '''
-
         return len(self.annos)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -121,17 +101,16 @@ class HRDataset(Dataset):
             )
             label = anno['label']
 
-        # label pre-processing
+        # label pre-processing: single-character tokenization
         label = [self.categories.index(char) for char in label]  # ctc encode
         label = torch.tensor(label, dtype=torch.int32)
 
         # sequence pre-processing
-        seq = seq[:, self.idx_channel]
-        seq = self.process(seq, len(label))
+        seq = self._process(seq, len(label))
 
         return seq, label
 
-    def process(self, seq: np.ndarray, len_label: int) -> torch.Tensor:
+    def _process(self, seq: np.ndarray, len_label: int) -> torch.Tensor:
         '''Pre processing.
 
         Args:
@@ -152,15 +131,10 @@ class HRDataset(Dataset):
         seq = torch.from_numpy(seq).to(torch.float32)
 
         # padding
-        if self.len_seq > 0:
+        if self.len_seq and len(seq) < self.len_seq:
             seq = pad(seq.T, (0, self.len_seq - len(seq))).T
-        else:
-            if len(seq) < (len_min := len_label * 2 * self.ratio_ds):
-                seq = pad(seq.T, (0, len_min - len(seq))).T
 
-            if remain := (len(seq) % (self.ratio_ds * self.size_window)):
-                seq = pad(
-                    seq.T, (0, self.ratio_ds * self.size_window - remain)
-                ).T
+        if len(seq) < (len_min := len_label * 2 * self.ratio_ds):
+            seq = pad(seq.T, (0, len_min - len(seq))).T
 
         return seq

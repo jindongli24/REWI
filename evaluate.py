@@ -8,7 +8,9 @@ import torch
 import yaml
 from thop import profile
 
-from hwr.model import BaseModel
+from rewi.model import BaseModel
+
+import time
 
 
 def get_mean_std_cv(cfgs: dict, results: dict = {}) -> dict:
@@ -34,12 +36,12 @@ def get_mean_std_cv(cfgs: dict, results: dict = {}) -> dict:
         for i, path_result in enumerate(sorted(paths_result)):
             with open(path_result, 'r') as f:
                 result_fd = json.load(f)
-            
+
             if cfgs['test']:
                 result_best = result_fd['-1']['evaluation']
             else:
                 epoch_best = result_fd['best']['character_error_rate'][0]
-                result_best = result_fd[str(epoch_best)]['evaluation']                
+                result_best = result_fd[str(epoch_best)]['evaluation']
 
             cer[str(i)] = result_best['character_error_rate']
             wer[str(i)] = result_best['word_error_rate']
@@ -73,12 +75,14 @@ def get_macs_params(cfgs: dict, results: dict = {}) -> dict:
     model = BaseModel(
         cfgs['arch_en'],
         cfgs['arch_de'],
-        cfgs['in_chan'],
-        cfgs['num_cls'],
-        cfgs['ratio_ds'],
+        cfgs['num_channel'],
+        len(cfgs['categories']),
         cfgs['len_seq'],
     ).eval()
-    x = torch.randn(1, cfgs['in_chan'], 1024)
+    model.infer()
+    x = torch.randn(
+        1, cfgs['num_channel'], 1024 if 'word' in cfgs['dir_dataset'] else 4096
+    )
     macs, params = profile(model, inputs=(x,))
 
     results['macs'] = int(macs)
@@ -89,22 +93,15 @@ def get_macs_params(cfgs: dict, results: dict = {}) -> dict:
 
 
 def main(path_cfg: str) -> None:
-    '''Evaluate and summarize the results of all cross-validation foldes.
+    '''Main function.
 
     Args:
         path_cfg (str): Path to the configuration YAML file.
-    '''    
+    '''
     with open(path_cfg, 'r') as f:
         cfgs = yaml.safe_load(f)
 
-        if not 'ratio_ds' in cfgs.keys():
-            cfgs['ratio_ds'] = 8
-
-        if not 'len_seq' in cfgs.keys():
-            cfgs['len_seq'] = 0
-
-    if not os.path.isdir(cfgs['dir_work']):
-        os.mkdir(cfgs['dir_work'])
+    os.makedirs(cfgs['dir_work'], exist_ok=True)
 
     if os.path.isfile(os.path.join(cfgs['dir_work'], 'results.json')):
         with open(os.path.join(cfgs['dir_work'], 'results.json'), 'r') as f:
@@ -121,6 +118,36 @@ def main(path_cfg: str) -> None:
     print(results)
 
 
+def main_ac(dir_work: str) -> None:
+    '''Summarize the results of cross-dataset evaluation.
+
+    Args:
+        dir_work (str): Path to the work directory.
+    '''
+    cer, wer = {'raw': {}}, {'raw': {}}
+
+    for fname in glob(os.path.join(dir_work, '*', 'results.json')):
+        with open(fname, 'r') as f:
+            result = json.load(f)
+
+        idx_1 = os.path.basename(os.path.dirname(fname))
+
+        for idx_2 in ['0', '1', '2', '3', '4']:
+            cer['raw'][f'{idx_1}{idx_2}'] = result['cer']['raw'][idx_2]
+            wer['raw'][f'{idx_1}{idx_2}'] = result['wer']['raw'][idx_2]
+
+    cer['mean'] = np.mean(list(cer['raw'].values())).item()
+    cer['std'] = np.std(list(cer['raw'].values())).item()
+    wer['mean'] = np.mean(list(wer['raw'].values())).item()
+    wer['std'] = np.std(list(wer['raw'].values())).item()
+    results = {'cer': cer, 'wer': wer}
+
+    with open(os.path.join(dir_work, 'results.json'), 'w') as f:
+        json.dump(results, f)
+                  
+    print(results)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Evaluate handwriting recognition model.'
@@ -130,4 +157,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(args.config)
+    if os.path.isfile(args.config):
+        main(args.config)
+    elif os.path.isdir(args.config):
+        main_ac(args.config)

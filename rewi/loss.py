@@ -3,17 +3,14 @@ import torch.nn as nn
 
 
 def smooth_probs(probs: torch.Tensor, alpha: float = 1e-6) -> torch.Tensor:
-    '''Smooth a probability distribution with a given smoothing factor for 
-    stable convergence.
+    '''Smooth a probability distribution with a given smoothing factor.
 
     Args:
-        probs (torch.Tensor): Original probability distribution of shape
-        (batch_size, len_seq, num_cls).
+        probs (torch.Tensor): Original probability distribution of shape (batch_size, len_seq, num_cls).
         alpha (float, optional): Smoothing factor. Defaults to 1e-6.
 
     Returns:
-        torch.Tensor: Smoothed probability distribution of the same shape as
-        input.
+        torch.Tensor: Smoothed probability distribution of the same shape as input.
     '''
     num_cls = probs.shape[-1]
     distr_uni = torch.full_like(probs, 1.0 / num_cls)
@@ -25,6 +22,16 @@ def smooth_probs(probs: torch.Tensor, alpha: float = 1e-6) -> torch.Tensor:
 
 
 class CTCLoss(nn.Module):
+    '''Custom CTCLoss with probability smoothing.
+
+    Inputs:
+        probs (torch.Tensor): Non-log probability predictions. (T, N, C) or (T, C) where C = number of characters in alphabet including blank, T = input length, and N = batch size.
+        targets (torch.Tensor): Targets. (N, S) or (sum(target_lengths)).
+        input_lengths (torch.Tensor): (N) or (). Lengths of the inputs (must each be <= T)
+        target_lengths (torch.Tensor): (N) or (). Lengths of the targets.
+    Outputs:
+        torch.Tensor: Loss value.
+    '''    
     def __init__(
         self,
         alpha_smooth: float = 1e-6,
@@ -35,14 +42,10 @@ class CTCLoss(nn.Module):
         '''Custom CTCLoss with probability smoothing.
 
         Args:
-            alpha_smooth (float, optional): Smooth factor for input
-            probability smoothing. If the factor is 0, original probability
-            predictions are used. Defaults to 1e-6.
+            alpha_smooth (float, optional): Smooth factor for input probability smoothing. If the factor is 0, original probability predictions are used. Defaults to 1e-6.
             blank (int, optional): Blank label. Defaults to 0.
-            reduction (str, optional): Specifies the reduction to apply to the
-            output. Options are 'none', 'mean' and 'sum'. Defaults to 'mean'.
-            zero_infinity (bool, optional): Whether to zero infinite losses
-            and the associated gradients. Defaults to False.
+            reduction (str, optional): Specifies the reduction to apply to the output. Options are 'none', 'mean' and 'sum'. Defaults to 'mean'.
+            zero_infinity (bool, optional): Whether to zero infinite losses and the associated gradients. Defaults to False.
         '''
         super().__init__()
 
@@ -61,16 +64,13 @@ class CTCLoss(nn.Module):
         '''Forward method.
 
         Args:
-            probs (torch.Tensor): Non-log probability predictions. (T, N, C)
-            or (T, C) where C = number of characters in alphabet including
-            blank, T = input length, and N = batch size.
+            probs (torch.Tensor): Non-log probability predictions. (T, N, C) or (T, C) where C = number of characters in alphabet including blank, T = input length, and N = batch size.
             targets (torch.Tensor): Targets. (N, S) or (sum(target_lengths)).
-            input_lengths (torch.Tensor): (N) or (). Lengths of the inputs
-            (must each be <= T)
+            input_lengths (torch.Tensor): (N) or (). Lengths of the inputs (must each be <= T)
             target_lengths (torch.Tensor): (N) or (). Lengths of the targets.
 
         Returns:
-            torch.Tensor: Loss tensor.
+            torch.Tensor: Loss value.
         '''
         if self.alpha_smooth:
             probs = smooth_probs(probs, self.alpha_smooth)

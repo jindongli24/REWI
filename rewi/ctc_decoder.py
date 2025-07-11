@@ -13,8 +13,7 @@ class BestPath:
         '''Greedy CTC decoder for converting model outputs to sequences.
 
         Args:
-            categories (list[str]): String of categories. Every character in
-            the string is a individual class.
+            categories (list[str]): String of categories. Every character in the string is a individual class.
         '''
         self.categories = categories
 
@@ -23,11 +22,8 @@ class BestPath:
         the consecutive repetative values will be removed.
 
         Args:
-            sequence (torch.Tensor): Outputs of CTC models or labels. Shape:
-            [length_sequence, number_categories] (for prediction) or
-            [length_sequence] (for label)
-            label (bool, optional): Whether the input sequence is a label
-            sequence. Defaults to False.
+            seq (torch.Tensor): Outputs of CTC models or labels. Shape: [length_sequence, number_categories] (for prediction) or [length_sequence] (for label)
+            label (bool, optional): Whether the input sequence is a label sequence. Defaults to False.
 
         Returns:
             str: Predicted sentences.
@@ -40,19 +36,3 @@ class BestPath:
         seq = ''.join(seq)
 
         return seq
-
-
-def build_ctc_decoder(categories: list[str], type: str) -> Any:
-    '''Build CTC decoder.
-
-    Args:
-        categories (list[str]): List of categories including the seperator.
-        type (str): Name of the CTC decoder to use. Option is "best_path".
-
-    Returns:
-        Any: CTC decoder.
-    '''
-    # TODO: Beam search CTC decoder
-    match type:
-        case 'best_path':
-            return BestPath(categories)

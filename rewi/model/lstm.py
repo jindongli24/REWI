@@ -10,8 +10,7 @@ class LSTM(nn.Module):
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, len_seq, num_chan).
     Outputs:
-        torch.Tensor: Output tensor of probabilities (size_batch, len_seq,
-        num_cls).
+        torch.Tensor: Output tensor of probabilities (size_batch, len_seq, num_cls).
     '''
 
     def __init__(
@@ -19,7 +18,7 @@ class LSTM(nn.Module):
         size_in: int,
         num_cls: int,
         hidden_size: int = 128,
-        num_layers: int = 3,
+        num_layers=3,
         r_drop: float = 0.2,
     ) -> None:
         '''Bi-LSTM module for classification.
@@ -51,8 +50,7 @@ class LSTM(nn.Module):
             x (torch.Tensor): Input tensor (size_batch, len_seq, num_chan).
 
         Returns:
-            torch.Tensor: Output tensor of probabilities (size_batch, len_seq,
-            num_cls).
+            torch.Tensor: Output tensor of probabilities (size_batch, len_seq, num_cls).
         '''
         x, _ = self.lstm(x)
         x = self.fc(x)

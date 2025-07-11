@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 
-__all__ = ['BLCNN']
+__all__ = ['BLConv']
 
 
 class PatchEmbed(nn.Module):
-    '''ConvNeXt-style patch embedding layer.
+    '''Patch embedding layer.
 
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, num_chan, len_seq).
@@ -16,7 +16,7 @@ class PatchEmbed(nn.Module):
     def __init__(
         self, in_chan: int, out_chan: int, kernel: int = 2, stride: int = 2
     ) -> None:
-        '''ConvNeXt-style patch embedding layer.
+        '''Patch embedding layer.
 
         Args:
             in_chan (int): Number of input channels.
@@ -44,9 +44,8 @@ class PatchEmbed(nn.Module):
         return x
 
 
-class Conv(nn.Module):
-    '''Convolutional module including depthwise convolutional layer,
-    instance normalization, GELU activation function and dropout.
+class MSConv(nn.Module):
+    '''Multi-scale depth-dilated 1-D separable convolutional block.
 
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, num_chan, len_seq).
@@ -57,23 +56,20 @@ class Conv(nn.Module):
     def __init__(
         self,
         dim: int,
-        kernel: int = 5,
         r_drop: float = 0.2,
     ) -> None:
-        '''Convolutional module including depthwise convolutional layer,
-        instance normalization, GELU activation function and dropout.
+        '''Multi-scale depth-dilated 1-D separable convolutional block.
 
         Args:
-            dim (int): Number of dimensions.
-            kernel (int, optional): Kernel size. Defaults to 5.
-            r_drop (float, optional): Dropping rate for dropout layer.
-            Defaults to 0.2.
+            dim (int): Number of dimension.
+            r_drop (float): Dropout rate. Defaults to 0.2.
         '''
         super().__init__()
 
-        self.dwconv = nn.Conv1d(
-            dim, dim * 2, kernel, padding='same', groups=dim
-        )
+        self.fused = False
+        self.dwconv1 = nn.Conv1d(dim, dim * 2, 1, padding='same', groups=dim)
+        self.dwconv3 = nn.Conv1d(dim, dim * 2, 3, padding='same', groups=dim)
+        self.dwconv5 = nn.Conv1d(dim, dim * 2, 5, padding='same', groups=dim)
         self.pwconv = nn.Conv1d(dim * 2, dim, 1)
         self.norm = nn.InstanceNorm1d(dim)
         self.act = nn.GELU()
@@ -88,7 +84,11 @@ class Conv(nn.Module):
         Returns:
             torch.Tensor: Output tensor (size_batch, num_chan, len_seq).
         '''
-        x = self.dwconv(x)
+        if self.fused:
+            x = self.dwconv5(x)
+        else:
+            x = self.dwconv1(x) + self.dwconv3(x) + self.dwconv5(x)
+
         x = self.pwconv(x)
         x = self.norm(x)
         x = self.act(x)
@@ -96,8 +96,23 @@ class Conv(nn.Module):
 
         return x
 
+    def fuse(self) -> None:
+        '''Add parameters of dwconv1 and dwconv3 to dwconv5.'''
+        with torch.no_grad():
+            self.dwconv5.weight.data[
+                :, :, 2
+            ] += self.dwconv1.weight.data.squeeze(-1)
+            self.dwconv5.weight.data[:, :, 1:4] += self.dwconv3.weight.data
+            self.dwconv5.bias.data += (
+                self.dwconv1.bias.data + self.dwconv3.bias.data
+            )
 
-class BLCNN(nn.Module):
+        del self.dwconv1
+        del self.dwconv3
+        self.fused = True
+
+
+class BLConv(nn.Module):
     '''Convolutional baseline encoder.
 
     Inputs:
@@ -117,18 +132,18 @@ class BLCNN(nn.Module):
         Args:
             in_chan (int): Number of input channels.
             depths (list[int]): Depths of all 3 blocks. Defaults to [3, 3, 3].
-            dims (list[int]): Feature dimensions of all 3 blocks. 
-            Defaults to [128, 256, 512].
+            dims (list[int]): Feature dimensions of all 3 blocks. Defaults to [128, 256, 512].
         '''
         super().__init__()
 
+        self.depths = depths
         self.dims = [in_chan] + dims
         self.layers = nn.ModuleList([])
 
         for i in range(len(depths)):
             self.layers.append(PatchEmbed(self.dims[i], self.dims[i + 1]))
             self.layers.extend(
-                [Conv(self.dims[i + 1]) for _ in range(depths[i])]
+                [MSConv(self.dims[i + 1]) for _ in range(depths[i])]
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -147,11 +162,26 @@ class BLCNN(nn.Module):
 
         return x
 
+    def fuse(self) -> None:
+        '''Fuse the convolutional layers.'''
+        for m in self.layers:
+            if hasattr(m, 'fuse'):
+                m.fuse()
+
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
         return self.dims[-1]
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return 2 ** len(self.depths)

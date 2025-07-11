@@ -1,9 +1,8 @@
-# Re-written from tsai (https://github.com/timeseriesAI/tsai) for determinism
-
 import numpy as np
 from scipy.interpolate import CubicSpline, PchipInterpolator, interp1d
 
 __all__ = ['AddNoise', 'Drift', 'Dropout', 'TimeWarp']
+
 
 class AddNoise:
     '''Add random noise to time series. The noise added to every time point of
@@ -21,32 +20,11 @@ class AddNoise:
         point of a time series is independent and identically distributed.
 
         Args:
-            loc (float | tuple[float, float] | list[float], optional): Mean of
-            the ranodm noise. If float, all noise value are sampled with the
-            same mean. If tuple, the noise added to a series (a channel if
-            `per_channel` is True) is sampled from a distribution with a
-            standard deviation that is randomly selected from the interval.
-            If list, the noise added to a series (a channel if `per_channel`
-            is True) is sampled from a distribution with a mean that is
-            randomly selected from the list. Defaults to 0.
-            scale (float | tuple[float, float] | list[float], optional):
-            Standard deviation of the random noise. If float, all noise value
-            are sampled with the same standard deviation. If tuple, the noise
-            added to a series (a channel if `per_channel` is True) is sampled
-            from a distribution with a standard deviation that is randomly
-            selected from the interval. If list, the noise added to a series
-            (a channel if `per_channel` is True) is sampled from a
-            distribution with a standard deviation that is randomly selected
-            from the list. Defaults to 0.1.
-            distr (str, optional): Distribution of the random noise. It must
-            be one of "gaussian", "laplace", and "uniform". Defaults to
-            "gaussian".
-            kind (str, optional): How the noise is added to the original time
-            series. It must be either "additive" or "multiplicative". Defaults
-            to "additive".
-            per_channel (bool, optional): Whether to sample independent noise
-            values for each channel in a time series or to use the same noise
-            for all channels in a time series. Defaults to True.
+            loc (float | tuple[float, float] | list[float], optional): Mean of the ranodm noise. If float, all noise value are sampled with the same mean. If tuple, the noise added to a series (a channel if `per_channel` is True) is sampled from a distribution with a standard deviation that is randomly selected from the interval. If list, the noise added to a series (a channel if `per_channel` is True) is sampled from a distribution with a mean that is randomly selected from the list. Defaults to 0.
+            scale (float | tuple[float, float] | list[float], optional): Standard deviation of the random noise. If float, all noise value are sampled with the same standard deviation. If tuple, the noise added to a series (a channel if `per_channel` is True) is sampled from a distribution with a standard deviation that is randomly selected from the interval. If list, the noise added to a series (a channel if `per_channel` is True) is sampled from a distribution with a standard deviation that is randomly selected from the list. Defaults to 0.1.
+            distr (str, optional): Distribution of the random noise. It must be one of "gaussian", "laplace", and "uniform". Defaults to "gaussian".
+            kind (str, optional): How the noise is added to the original time series. It must be either "additive" or "multiplicative". Defaults to "additive".
+            per_channel (bool, optional): Whether to sample independent noise values for each channel in a time series or to use the same noise for all channels in a time series. Defaults to True.
         '''
         self.loc = loc
         self.scale = scale
@@ -122,25 +100,10 @@ class Drift:
         points.
 
         Args:
-            max_drift (float | tuple[float, float], optional): The maximal
-            amount of drift added to a time series. If float, all series (all
-            channels if `per_channel` is True) are drifted with the same
-            maximum. If tuple, the maximal drift added to a time series (a
-            channel if `per_channel` is True) is sampled from this interval
-            randomly. Defaults to 0.5.
-            n_drift_points (int | list[int], optional): The number of time
-            points a new drifting trend is defined in a series. If int, all
-            series (all channels if `per_channel` is True) have the same
-            number of drift points. If list, the number of drift points
-            defined in a series (a channel if `per_channel` is True) is
-            sampled from this list randomly. Defaults to 3.
-            kind (str, optional): How the noise is added to the original time
-            series. It must be either "additive" or "multiplicative". Defaults
-            to "additive".
-            per_channel (bool, optional): Whether to sample independent
-            drifting trends for each channel in a time series or to use the
-            same drifting trends for all channels in a time series. Defaults
-            to True.
+            max_drift (float | tuple[float, float], optional): The maximal amount of drift added to a time series. If float, all series (all channels if `per_channel` is True) are drifted with the same maximum. If tuple, the maximal drift added to a time series (a channel if `per_channel` is True) is sampled from this interval randomly. Defaults to 0.5.
+            n_drift_points (int | list[int], optional): The number of time points a new drifting trend is defined in a series. If int, all series (all channels if `per_channel` is True) have the same number of drift points. If list, the number of drift points defined in a series (a channel if `per_channel` is True) is sampled from this list randomly. Defaults to 3.
+            kind (str, optional): How the noise is added to the original time series. It must be either "additive" or "multiplicative". Defaults to 'additive'.
+            per_channel (bool, optional): Whether to sample independent drifting trends for each channel in a time series or to use the same drifting trends for all channels in a time series. Defaults to True.
         '''
         self.max_drift = max_drift
         self.kind = kind
@@ -214,28 +177,10 @@ class Dropout:
         time points or sub-sequences could be dropped out.
 
         Args:
-            p (float | tuple[float, float] | list[float], optional):
-            Probablity of the value of a time point to be dropped out. If
-            float, all series (all channels if `per_channel` is True) have the
-            same probability. If tuple, a series (a channel if `per_channel`
-            is True) has a probability sampled from this interval randomly. If
-            list, a series (a channel if `per_channel` is True) has a
-            probability sampled from this list randomly. Defaults to 0.05.
-            size (int | tuple[int, int] | list[int], optional): Size of
-            dropped out units. If int, all dropped out units have the same
-            size. If list, a dropped out unit has size sampled from this list
-            randomly. If 2-tuple, a dropped out unit has size sampled from
-            this interval randomly. Note that dropped out units could overlap
-            which results in larger units effectively, though the probability
-            is low if `p` is small. Defaults to 1.
-            fill (str | float, optional): How a dropped out value is filled.
-            If "ffill", fill with the last previous value that is not dropped.
-            If "bfill", fill with the first next value that is not dropped. If
-            "mean", fill with the mean value of this channel in this series.
-            If float, fill with this value. Defaults to "ffill".
-            per_channel (bool, optional): Whether to sample dropout units
-            independently for each channel in a time series or to use the same
-            dropout units for all channels in a time series. Defaults to False.
+            p (float | tuple[float, float] | list[float], optional): Probablity of the value of a time point to be dropped out. If float, all series (all channels if `per_channel` is True) have the same probability. If tuple, a series (a channel if `per_channel` is True) has a probability sampled from this interval randomly. If list, a series (a channel if `per_channel` is True) has a probability sampled from this list randomly. Defaults to 0.05.
+            size (int | tuple[int, int] | list[int], optional): Size of dropped out units. If int, all dropped out units have the same size. If list, a dropped out unit has size sampled from this list randomly. If 2-tuple, a dropped out unit has size sampled from this interval randomly. Note that dropped out units could overlap which results in larger units effectively, though the probability is low if `p` is small. Defaults to 1.
+            fill (str | float, optional): How a dropped out value is filled. If "ffill", fill with the last previous value that is not dropped. If "bfill", fill with the first next value that is not dropped. If "mean", fill with the mean value of this channel in this series. If float, fill with this value. Defaults to "ffill".
+            per_channel (bool, optional): Whether to sample dropout units independently for each channel in a time series or to use the same dropout units for all channels in a time series. Defaults to False.
         '''
         self.p = p
         self.fill = fill
@@ -331,16 +276,8 @@ class TimeWarp:
         changes and the maximal ratio of max/min speed.
 
         Args:
-            n_speed_change (int, optional): The number of speed changes in
-            each series. Defaults to 3.
-            max_speed_ratio (float | tuple[float, float] | list[float],
-            optional): The maximal ratio of max/min speed in the warpped time
-            line. The time line of a series is more likely to be significantly
-            warpeped if this value is greater. If float, all series are
-            warpped with the same ratio. If list, each series is warpped with
-            a ratio that is randomly sampled from the list. If 2-tuple, each
-            series is warpped with a ratio that is randomly sampled from the
-            interval. Defaults to 3.0.
+            n_speed_change (int, optional): The number of speed changes in each series. Defaults to 3.
+            max_speed_ratio (float | tuple[float, float] | list[float], optional): The maximal ratio of max/min speed in the warpped time line. The time line of a series is more likely to be significantly warpeped if this value is greater. If float, all series are warpped with the same ratio. If list, each series is warpped with a ratio that is randomly sampled from the list. If 2-tuple, each series is warpped with a ratio that is randomly sampled from the interval. Defaults to 3.0.
         '''
         self.n_speed_change = n_speed_change
         self.max_speed_ratio = max_speed_ratio

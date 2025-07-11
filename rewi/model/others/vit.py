@@ -1,13 +1,12 @@
-# Vaswani et al. - 2017 - Attention Is All You Need
+# Dosovitskiy et al. - 2021 - An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
 # Modified from vit-pytorch (https://github.com/lucidrains/vit-pytorch)
 
 import torch
 import torch.nn as nn
-
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
-__all__ = ['TransEnc', 'TransDec']
+__all__ = ['ViT']
 
 
 class FeedForward(nn.Module):
@@ -185,7 +184,8 @@ class Transformer(nn.Module):
         return x
 
 
-class TransEnc(nn.Module):
+# class TransEnc(nn.Module):
+class ViT(nn.Module):
     '''Transformer encoder.
 
     Inputs:
@@ -197,7 +197,7 @@ class TransEnc(nn.Module):
     def __init__(
         self,
         in_chan: int,
-        seq_len: int = 1024,
+        len_seq: int = 1024,
         patch_size: int = 8,
         dim: int = 128,
         depth: int = 4,
@@ -211,28 +211,26 @@ class TransEnc(nn.Module):
 
         Args:
             in_chan (int): Number of input channels.
-            seq_len (int, optional): Length of input. Defaults to 1024.
+            len_seq (int, optional): Length of input. Defaults to 1024.
             patch_size (int, optional): Patch size. Defaults to 8.
-            dim (int, optional): Number of patch dimension. Defaults to 256.
-            depth (int, optional): Depth. Defaults to 5.
+            dim (int, optional): Number of patch dimension. Defaults to 128.
+            depth (int, optional): Depth. Defaults to 4.
             heads (int, optional): Number of heads. Defaults to 8.
-            mlp_dim (int, optional): Number of hidden dimensions of feed
-            forward network. Defaults to 512.
-            dim_head (int, optional): Number of head dimensions.
-            Defaults to 64.
+            mlp_dim (int, optional): Number of hidden dimensions of feed forward network. Defaults to 512.
+            dim_head (int, optional): Number of head dimensions. Defaults to 128.
             dropout (float, optional): Dropout rate. Defaults to 0.0.
-            emb_dropout (float, optional): Dropout rate of patch embedding
-            layer. Defaults to 0.0.
+            emb_dropout (float, optional): Dropout rate of patch embedding layer. Defaults to 0.0.
         '''
         super().__init__()
 
         assert (
-            seq_len % patch_size
+            len_seq % patch_size
         ) == 0, 'Input length cannot be divided by patch size.'
 
         self.dim = dim
+        self.patch_size = patch_size
 
-        num_patches = seq_len // patch_size
+        num_patches = len_seq // patch_size
         patch_dim = in_chan * patch_size
 
         self.to_patch_embedding = nn.Sequential(
@@ -268,7 +266,7 @@ class TransEnc(nn.Module):
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
@@ -276,58 +274,11 @@ class TransEnc(nn.Module):
         '''
         return self.dim
 
-
-class TransDec(nn.Module):
-    '''Transformer decoder.
-
-    Inputs:
-        x (torch.Tensor): Input tensor (size_batch, len_seq, num_dim).
-    Outputs:
-        torch.Tensor: Output tensor (size_batch, len_seq, num_classes).
-    '''
-
-    def __init__(
-        self,
-        size_in: int,
-        num_class: int,
-        dim: int = 128,
-        depth: int = 2,
-        heads: int = 8,
-        mlp_ratio: float = 4.0,
-        dropout: float = 0.0,
-    ) -> None:
-        '''Transformer decoder.
-
-        Args:
-            dim (int): Number of input dimensions.
-            num_class (int): Number of categories.
-            depth (int): Depth. Defaults to 2.
-            heads (int): Number of heads. Defaults to 8.
-            mlp_ratio (float, optional): Scale ratio to input dimensions for
-            MLP. Defaults to 4.0.
-            dropout (float, optional): Dropout rate. Defaults to 0.0.
-        '''
-        super().__init__()
-
-        self.embed = nn.Linear(size_in, dim)
-        self.transformer = Transformer(
-            dim, depth, heads, dim, int(dim * mlp_ratio), dropout
-        )
-        self.fc = nn.Linear(dim, num_class)
-        self.softmax = nn.Softmax(dim=2)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        '''Forward method.
-
-        Args:
-            x (torch.Tensor): Input tensor (size_batch, len_seq, num_dim).
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_seq, num_classes).
+            int: Downsample ratio.
         '''
-        x = self.embed(x)
-        x = self.transformer(x)
-        x = self.fc(x)
-        x = self.softmax(x)
-
-        return x
+        return self.patch_size

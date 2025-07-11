@@ -1,13 +1,13 @@
-# Webbi et al. - 2021 - Towards an IMU-based Pen Online Handwriting  Recognizer
+# Ott et al. - 2022 - Benchmarking Online Sequence-to-Sequence and Character-based Handwriting Recognition from IMU-Enhanced Pens
 
 import torch
 import torch.nn as nn
 
-__all__ = ['MohDnc', 'MohEec']
+__all__ = ['OttBiLSTM', 'OttCNN']
 
 
-class MohEnc(nn.Module):
-    '''Mohamad's convolutional encoder.
+class OttCNN(nn.Module):
+    '''Ott's convolutional encoder.
 
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, num_chan, len_seq).
@@ -16,34 +16,21 @@ class MohEnc(nn.Module):
     '''
 
     def __init__(self, in_chan: int) -> None:
-        '''Mohamad's convolutional encoder.
+        '''Ott's convolutional encoder.
 
         Args:
             in_chan (int): Number of input channels.
         '''
         super().__init__()
 
-        self.block1 = nn.Sequential(
-            nn.Conv1d(in_chan, 512, 5, padding='same'),
-            nn.BatchNorm1d(512),
-            nn.ReLU(),
-            nn.MaxPool1d(2, 2),
-            nn.Dropout(0.3),
-        )
-        self.block2 = nn.Sequential(
-            nn.Conv1d(512, 256, 3, padding='same'),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.MaxPool1d(2, 2),
-            nn.Dropout(0.3),
-        )
-        self.block3 = nn.Sequential(
-            nn.Conv1d(256, 128, 3, padding='same'),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.MaxPool1d(2, 2),
-            nn.Dropout(0.3),
-        )
+        self.conv1 = nn.Conv1d(in_chan, 200, 4, padding='same')
+        self.mp1 = nn.MaxPool1d(2, 2)
+        self.bn1 = nn.BatchNorm1d(200)
+        self.do1 = nn.Dropout(0.2)
+        self.conv2 = nn.Conv1d(200, 200, 4, padding='same')
+        self.mp2 = nn.MaxPool1d(2, 2)
+        self.bn2 = nn.BatchNorm1d(200)
+        self.do2 = nn.Dropout(0.2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         '''Forward method.
@@ -54,35 +41,49 @@ class MohEnc(nn.Module):
         Returns:
             torch.Tensor: Output tensor (size_batch, len_seq, num_chan).
         '''
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
+        x = self.conv1(x)
+        x = self.mp1(x)
+        x = self.bn1(x)
+        x = self.do1(x)
+        x = self.conv2(x)
+        x = self.mp2(x)
+        x = self.bn2(x)
+        x = self.do2(x)
+
         x = x.transpose(1, 2)
 
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
-        return 128
+        return 200
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return 4
 
 
-class MohDec(nn.Module):
-    '''Mohamad's Bi-LSTM decoder.
+class OttBiLSTM(nn.Module):
+    '''Ott's Bi-LSTM module for classification.
 
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, len_seq, num_chan).
     Outputs:
-        torch.Tensor: Output tensor of probabilities (size_batch, len_seq,
-        num_cls).
+        torch.Tensor: Output tensor of probabilities (size_batch, len_seq, num_cls).
     '''
 
     def __init__(self, size_in: int, num_cls: int) -> None:
-        '''Mohamad's Bi-LSTM decoder.
+        '''Ott's Bi-LSTM module for classification.
 
         Args:
             size_in (int): Number of input channel.
@@ -91,25 +92,20 @@ class MohDec(nn.Module):
         super().__init__()
 
         self.lstm = nn.LSTM(
-            size_in, 64, 2, batch_first=True, dropout=0.3, bidirectional=True
+            size_in, 60, 2, batch_first=True, bidirectional=True
         )
-        self.hid = nn.Sequential(
-            nn.Linear(128, 100),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-        )
+        self.hid = nn.Linear(120, 100)
         self.fc = nn.Linear(100, num_cls)
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        '''Foward function.
+        '''Forward method.
 
         Args:
             x (torch.Tensor): Input tensor (size_batch, len_seq, num_chan).
 
         Returns:
-            torch.Tensor: Output tensor of probabilities (size_batch, len_seq,
-            num_cls).
+            torch.Tensor: Output tensor of probabilities (size_batch, len_seq, num_cls).
         '''
         x, _ = self.lstm(x)
         x = self.hid(x)

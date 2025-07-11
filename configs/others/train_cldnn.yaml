@@ -1,21 +1,18 @@
-arch_de: bilstm_b
-arch_en: blconv_b
-aug: true # whether to perform data augmentation for train set
-cache: true # whether to cache the whole dataset into rams
-checkpoint: null # path to checkpoint to load
+arch_de: cldnn
+arch_en: cldnn
+cache: true # whether to cache the whole dataset into ram
+checkpoint: null # checkpoint to load
 ctc_decoder: best_path
 device: cuda
 dir_dataset: ../data/onhw_wi_word_rh
-dir_work: ../results/hwr2/blconv/blconv_b__onhw_wi_word_rh
-epoch: 300
-epoch_warmup: 30
-freeze: false # whether to freeze the encoder
+dir_work: ../results/hwr2/cldnn/cldnn__onhw_wi_word_rh
 freq_eval: 5 # frequency (epoch) to evaulate model performance on val set
 freq_log: 300 # frequency (iteration) to log information
 freq_save: 5 # frequency (epoch) to save model checkpoint
+epoch: 1000
 idx_fold: -1 # cross validation fold index. 0 for non-cross validation. -1 for train for all cross-validation folds automatically
 len_seq: 0
-lr: 0.001
+lr: 0.01
 num_channel: 13
 num_worker: 16
 seed: 42
@@ -24,4 +21,3 @@ test: false
 
 categories: ["", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Ä", "Ö", "Ü", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "ä", "ö", "ü", "ß"] # including seperation label "" for CTC
 # categories: ["", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "ä", "ö", "ü", "Ä", "Ö", "Ü", "ß", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ",", "(",")", "'", "?", "!", "+", "=", "-", "/", ";", ":", "·", " "]
- 

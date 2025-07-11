@@ -40,18 +40,13 @@ def evaluate(
 
     Args:
         preds (str | list[str]): Sentences of predictions.
-        labels (str | list[str]): Sentences of round-truth labels.
-        use_ld (bool, optional): Whether to calculate the Levenshtein distance
-        and average length of ground-truth sentences. Defaults to True.
-        use_cer (bool, optional): Whether to calculate the character error
-        rate. Defaults to True.
-        use_wer (bool, optional): Whether to calculate the word error rate.
-        Defaults to True.
+        labels (str | list[str]): Sentences of ground-truth labels.
+        use_ld (bool, optional): Whether to calculate the Levenshtein distance and average length of ground-truth sentences. Defaults to True.
+        use_cer (bool, optional): Whether to calculate the character error rate. Defaults to True.
+        use_wer (bool, optional): Whether to calculate the word error rate. Defaults to True.
 
     Returns:
-        dict: Results of Levenshtein distance, average sentence length,
-        character error rate and word error rate. The values that are not
-        calculated are shown as -1.
+        dict: Results of Levenshtein distance, average sentence length, character error rate and word error rate. The values that are not calculated are shown as -1.
     '''
     if isinstance(preds, str):
         preds = [preds]

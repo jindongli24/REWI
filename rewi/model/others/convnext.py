@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from timm.layers import trunc_normal_, DropPath
+from timm.layers import DropPath, trunc_normal_
 
 __all__ = ['ConvNeXt']
 
@@ -17,18 +17,16 @@ class LayerNorm(nn.Module):
     (batch_size, channels, len_seq).
 
     Inputs:
-        x (torch.Tensor): Input tensor (batch_size, len_seq, channels) /
-        (batch_size, channels, len_seq).
+        x (torch.Tensor): Input tensor (batch_size, len_seq, channels)/(batch_size, channels, len_seq).
     Outputs:
-        torch.Tensor: Input tensor (batch_size, len_seq, channels) /
-        (batch_size, channels, len_seq).
+        torch.Tensor: Input tensor (batch_size, len_seq, channels)/(batch_size, channels, len_seq).
     '''
 
     def __init__(
         self,
         normalized_shape: int,
         eps: float = 1e-6,
-        data_format: str = "channels_last",
+        data_format: str = 'channels_last',
     ) -> None:
         '''LayerNorm that supports two data formats: channels_last (default)
         or channels_first. The ordering of the dimensions in the inputs.
@@ -39,8 +37,7 @@ class LayerNorm(nn.Module):
         Args:
             normalized_shape (int): Number of dimensions.
             eps (float, optional): Epsilon. Defaults to 1e-6.
-            data_format (str, optional): Channel oreders. Options are "channel
-            first" and "channel last". Defaults to "channels_last".
+            data_format (str, optional): Channel oreders. Options are "channel first" and "channel last". Defaults to "channels_last".
 
         Raises:
             NotImplementedError: Whether the given data format is valid.
@@ -52,7 +49,7 @@ class LayerNorm(nn.Module):
         self.eps = eps
         self.data_format = data_format
 
-        if self.data_format not in ["channels_last", "channels_first"]:
+        if self.data_format not in ['channels_last', 'channels_first']:
             raise NotImplementedError
 
         self.normalized_shape = (normalized_shape,)
@@ -61,18 +58,16 @@ class LayerNorm(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (batch_size, len_seq, channels) /
-            (batch_size, channels, len_seq).
+            x (torch.Tensor): Input tensor (batch_size, len_seq, channels)/(batch_size, channels, len_seq).
 
         Returns:
-            torch.Tensor: Input tensor (batch_size, len_seq, channels) /
-            (batch_size, channels, len_seq).
+            torch.Tensor: Input tensor (batch_size, len_seq, channels)/(batch_size, channels, len_seq).
         '''
-        if self.data_format == "channels_last":
+        if self.data_format == 'channels_last':
             return F.layer_norm(
                 x, self.normalized_shape, self.weight, self.bias, self.eps
             )
-        elif self.data_format == "channels_first":
+        elif self.data_format == 'channels_first':
             u = x.mean(1, keepdim=True)
             s = (x - u).pow(2).mean(1, keepdim=True)
             x = (x - u) / torch.sqrt(s + self.eps)
@@ -113,8 +108,7 @@ class Block(nn.Module):
             dim (int): Number of input channels.
             ratio_rb (int): Scale ratio of reversed bottleneck. Defaults to 4.
             drop_path (float): Stochastic depth rate. Default: 0.0
-            layer_scale_init_value (float): Init value for Layer Scale.
-            Default: 1e-6.
+            layer_scale_init_value (float): Init value for Layer Scale. Default: 1e-6.
         '''
         super().__init__()
 
@@ -183,17 +177,15 @@ class ConvNeXt(nn.Module):
 
         Args:
             in_chans (int): Number of input image channels. Default: 3
-            depths (list[int]): Number of blocks at each stage.
-            Default: [3, 3, 9, 3]
-            dims (list[int]): Feature dimension at each stage.
-            Default: [96, 192, 384, 768]
+            depths (list[int]): Number of blocks at each stage. Default: [3, 3, 9, 3]
+            dims (list[int]): Feature dimension at each stage. Default: [96, 192, 384, 768]
             ratio_rb (int): Scale ratio of reversed bottleneck. Defaults to 3.
             drop_path_rate (float): Stochastic depth rate. Default: 0.
-            layer_scale_init_value (float): Init value for Layer Scale.
-            Default: 1e-6.
+            layer_scale_init_value (float): Init value for Layer Scale. Default: 1e-6.
         '''
         super().__init__()
 
+        self.depths = depths
         self.dims = dims
         self.num_stage = len(dims)
 
@@ -202,13 +194,13 @@ class ConvNeXt(nn.Module):
         )  # stem and 3 intermediate downsampling conv layers
         stem = nn.Sequential(
             nn.Conv1d(in_chans, dims[0], kernel_size=2, stride=2),
-            LayerNorm(dims[0], eps=1e-6, data_format="channels_first"),
+            LayerNorm(dims[0], eps=1e-6, data_format='channels_first'),
         )
         self.downsample_layers.append(stem)
 
         for i in range(self.num_stage - 1):
             downsample_layer = nn.Sequential(
-                LayerNorm(dims[i], eps=1e-6, data_format="channels_first"),
+                LayerNorm(dims[i], eps=1e-6, data_format='channels_first'),
                 nn.Conv1d(dims[i], dims[i + 1], kernel_size=2, stride=2),
             )
             self.downsample_layers.append(downsample_layer)
@@ -269,10 +261,19 @@ class ConvNeXt(nn.Module):
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
         return self.dims[-1]
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return 2 ** len(self.depths)

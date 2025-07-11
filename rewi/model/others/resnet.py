@@ -21,7 +21,7 @@ class BasicBlock(nn.Module):
         in_chan: int,
         dim: int,
         stride: int = 1,
-        downsample: nn.Module = None,
+        downsample: nn.Module | None = None,
     ) -> None:
         '''Basic block.
 
@@ -29,8 +29,7 @@ class BasicBlock(nn.Module):
             in_chan (int): Number of input channels.
             dim (int): Number of dimension of the block.
             stride (int, optional): Stide. Defaults to 1.
-            downsample (torch.nn.Module, optional): Downsampling block.
-            Defaults to None.
+            downsample (torch.nn.Module | None, optional): Downsampling block. Defaults to None.
         '''
         super().__init__()
 
@@ -106,6 +105,7 @@ class ResNet(nn.Module):
 
         inplanes = 64
 
+        self.depths = depths
         self.embed = nn.Sequential(
             nn.Conv1d(
                 in_chan,
@@ -177,10 +177,19 @@ class ResNet(nn.Module):
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
         return self.dim
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return 2 ** len(self.depths)

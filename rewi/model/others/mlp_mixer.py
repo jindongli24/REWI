@@ -46,11 +46,9 @@ def mlp(
 
     Args:
         dim (int): Number of input and output dimensions.
-        expansion_factor (float, optional): Expansion factor for hidden size.
-        Defaults to 4.0.
+        expansion_factor (float, optional): Expansion factor for hidden size. Defaults to 4.0.
         dropout (float, optional): Dropout rate. Defaults to 0.0.
-        dense (torch.nn.Module, optional): Dense layer module.
-        Defaults to torch.nn.Linear.
+        dense (torch.nn.Module, optional): Dense layer module. Defaults to torch.nn.Linear.
 
     Returns:
         nn.Sequential: MLP block.
@@ -90,19 +88,17 @@ class MLPMixer(nn.Module):
 
         Args:
             in_chan (int): Number of input channels.
-            len_seq (int, optional): Length of input sequences.
-            Defaults to 1024.
+            len_seq (int, optional): Length of input sequences. Defaults to 1024.
             patch_size (int, optional): Patch size. Defaults to 8.
             dim (int, optional): Dimension. Defaults to 512.
             depth (int, optional): Depth. Defaults to 6.
-            expansion_factor (float, optional): Expansion factor for token
-            mixing. Defaults to 4.0.
-            expansion_factor_token (float, optional): Expansion factor for
-            channel mixing. Defaults to 0.5.
+            expansion_factor (float, optional): Expansion factor for token mixing. Defaults to 4.0.
+            expansion_factor_token (float, optional): Expansion factor for channel mixing. Defaults to 0.5.
             dropout (float, optional): Dropout rate. Defaults to 0.0.
         '''
         super().__init__()
 
+        self.patch_size = patch_size
         self.dim = dim
         num_patches = len_seq // patch_size
         chan_first, chan_last = partial(nn.Conv1d, kernel_size=1), nn.Linear
@@ -146,10 +142,19 @@ class MLPMixer(nn.Module):
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
         return self.dim
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return self.patch_size

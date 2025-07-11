@@ -15,18 +15,15 @@ def train_cv(cfgs: dict, path_main: str) -> None:
     with open(os.path.join(cfgs['dir_dataset'], 'train.json'), 'r') as f:
         num_fd = json.load(f)['info']['num_fold']
 
-    dir_temp = 'temp'
+    dir_temp = f'temp_{os.path.basename(cfgs["dir_work"])}'
 
-    while os.path.isdir(dir_temp):
-        dir_temp += '1'
-
-    os.mkdir(dir_temp)
+    os.makedirs(dir_temp, exist_ok=True)
 
     command = []
     seperator = ' && '
 
     for i in range(num_fd):
-        cfgs['idx_cv'] = i
+        cfgs['idx_fold'] = i
         path_temp = os.path.join(dir_temp, f'f{i}.yaml')
 
         with open(path_temp, 'w') as f:
@@ -58,7 +55,7 @@ if __name__ == '__main__':
         cfgs = yaml.safe_load(f)
 
     assert (
-        cfgs['idx_cv'] == -1
+        cfgs['idx_fold'] == -1
     ), 'Please use cross-validation training configuration.'
 
     train_cv(cfgs, args.main)

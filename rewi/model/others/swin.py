@@ -33,14 +33,10 @@ class Mlp(nn.Module):
 
         Args:
             in_features (int): Number of dimension of input features.
-            hidden_features (int, optional): Number of dimension of hidden
-            features. If not given, in_features will be used. Defaults to None.
-            out_features (int, optional): Number of dimension of output
-            features. If not given, in_features will be used. Defaults to None.
-            act_layer (torch.nn.Module, optional): Activation layer. Defaults
-            to torch.nn.GELU.
-            drop (float, optional): Drop rate for torch.nn.Dropout. Defaults
-            to 0.0.
+            hidden_features (int, optional): Number of dimension of hidden features. If not given, in_features will be used. Defaults to None.
+            out_features (int, optional): Number of dimension of output features. If not given, in_features will be used. Defaults to None.
+            act_layer (torch.nn.Module, optional): Activation layer. Defaults to torch.nn.GELU.
+            drop (float, optional): Drop rate for torch.nn.Dropout. Defaults to 0.0.
         '''
         super().__init__()
 
@@ -55,12 +51,10 @@ class Mlp(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, len_sequence,
-            num_channel).
+            x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence,
-            num_channel).
+            torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
         '''
         x = self.fc1(x)
         x = self.act(x)
@@ -79,8 +73,7 @@ def window_partition(x: torch.Tensor, window_size: int) -> torch.Tensor:
         window_size (int): Window size.
 
     Returns:
-        torch.Tensor: Output tensor (num_window * size_batch, size_window,
-        num_channel).
+        torch.Tensor: Output tensor (num_window * size_batch, size_window, num_channel).
     '''
     B, L, C = x.shape
     x = x.view(B, L // window_size, window_size, C)
@@ -93,8 +86,7 @@ def window_reverse(windows, window_size, L):
     '''Window patition reversing for SwinTransformerBlock1D.
 
     Args:
-        x (torch.Tensor): Input tensor (num_window * size_batch, size_window,
-        num_channel).
+        x (torch.Tensor): Input tensor (num_window * size_batch, size_window, num_channel).
         window_size (int): Window size.
         L (int): Sequence length.
 
@@ -112,13 +104,10 @@ class WindowAttention(nn.Module):
     position bias. It supports both of shifted and non-shifted window.
 
     Inputs:
-        x (torch.Tensor): Input tensor (num_window * size_batch, num_window,
-        num_channel).
-        mask (torch.Tensor, optional): (0/-100) mask with shape of
-        (num_window, size_window, size_window). Defaults to None.
+        x (torch.Tensor): Input tensor (num_window * size_batch, num_window, num_channel).
+        mask (torch.Tensor, optional): (0/-100) mask with shape of (num_window, size_window, size_window). Defaults to None.
     Outputs:
-        torch.Tensor: Output tensor (num_window * size_batch, num_window,
-        num_channel).
+        torch.Tensor: Output tensor (num_window * size_batch, num_window, num_channel).
     '''
 
     def __init__(
@@ -138,14 +127,10 @@ class WindowAttention(nn.Module):
             dim (int): Number of input dimension.
             window_size (int): Window size.
             num_heads (int): Number of attention heads.
-            qkv_bias (bool, optional): Whether to add a learnable bias to
-            query, key and value. Defaults to True.
-            attn_drop (float, optional): Dropout ratio of attention weight.
-            Defaults to 0.0.
-            proj_drop (float, optional): Dropout ratio of output. Defaults to
-            0.0.
-            pretrained_window_size (int, optional): Window size in
-            pre-training. Defaults to 0.
+            qkv_bias (bool, optional): Whether to add a learnable bias to query, key and value. Defaults to True.
+            attn_drop (float, optional): Dropout ratio of attention weight. Defaults to 0.0.
+            proj_drop (float, optional): Dropout ratio of output. Defaults to 0.0.
+            pretrained_window_size (int, optional): Window size in pre-training. Defaults to 0.
         '''
         super().__init__()
 
@@ -231,10 +216,8 @@ class WindowAttention(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (num_window * size_batch,
-            size_window, num_channel).
-            mask (torch.Tensor, optional): (0/-100) mask with shape of
-            (num_window, size_window, size_window). Defaults to None.
+            x (torch.Tensor): Input tensor (num_window * size_batch, size_window, num_channel).
+            mask (torch.Tensor, optional): (0/-100) mask with shape of (num_window, size_window, size_window). Defaults to None.
 
         Returns:
             torch.Tensor: Output tensor (num_window * size_batch, num_window, num_channel).
@@ -337,21 +320,14 @@ class SwinTransformerBlock(nn.Module):
             num_heads (int): Number of attention heads.
             window_size (int, optional): Window size. Defaults to 8.
             shift_size (int, optional): Shift size for SW-MSA. Defaults to 0.
-            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to
-            embedding dimensions. Defaults to 4.0.
-            qkv_bias (bool, optional): Whether to add a learnable bias to
-            query, key and value. Defaults to True.
+            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to embedding dimensions. Defaults to 4.0.
+            qkv_bias (bool, optional): Whether to add a learnable bias to query, key and value. Defaults to True.
             drop (float, optional): Dropout rate. Defaults to 0.0.
-            attn_drop (float, optional): Dropout rate of attention weights.
-            Defaults to 0.0.
-            drop_path (float, optional): Stochastic depth rate. Defaults to
-            0.0.
-            act_layer (torch.nn.Module, optional): Activation layer. Defaults
-            to torch.nn.GELU.
-            norm_layer (torch.nn.Module, optional): Normalization layer.
-            Defaults to torch.nn.LayerNorm.
-            pretrained_window_size (int, optional): Windows size in
-            pre-training. Defaults to 0.
+            attn_drop (float, optional): Dropout rate of attention weights. Defaults to 0.0.
+            drop_path (float, optional): Stochastic depth rate. Defaults to 0.0.
+            act_layer (torch.nn.Module, optional): Activation layer. Defaults to torch.nn.GELU.
+            norm_layer (torch.nn.Module, optional): Normalization layer. Defaults to torch.nn.LayerNorm.
+            pretrained_window_size (int, optional): Windows size in pre-training. Defaults to 0.
         '''
         super().__init__()
 
@@ -424,12 +400,10 @@ class SwinTransformerBlock(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, len_sequence,
-            num_channel).
+            x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence,
-            num_channel).
+            torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
         '''
         B, L, C = x.shape
         shortcut = x
@@ -482,19 +456,17 @@ class PatchMerge(nn.Module):
     '''Patch Merging Layer.
 
     Inputs:
-        x (torch.Tensor): Input tensor (size_batch, len_sequence,
-        num_channel).
+        x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
     Outputs:
-        torch.Tensor: Output tensor (size_batch, len_sequence / 2,
-        num_channel * 2).'''
+        torch.Tensor: Output tensor (size_batch, len_sequence / 2, num_channel * 2).
+    '''
 
     def __init__(self, dim: int, norm_layer: nn.Module = nn.LayerNorm) -> None:
         '''Patch merging layer.
 
         Args:
             dim (int): Number of input channels.
-            norm_layer (torch.nn.Module, optional): Normalization layer.
-            Defaults to torch.nn.LayerNorm.
+            norm_layer (torch.nn.Module, optional): Normalization layer. Defaults to torch.nn.LayerNorm.
         '''
         super().__init__()
 
@@ -506,12 +478,10 @@ class PatchMerge(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, len_sequence,
-            num_channel).
+            x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence / 2,
-            num_channel * 2).
+            torch.Tensor: Output tensor (size_batch, len_sequence / 2, num_channel * 2).
         '''
         x0 = x[:, 0::2, :]  # B L/2 C
         x1 = x[:, 1::2, :]  # B L/2 C
@@ -556,21 +526,14 @@ class BasicLayer(nn.Module):
             depth (int): Number of blocks.
             num_heads (int): Number of attention heads.
             window_size (int): Window size.
-            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to
-            embedding dimensions. Defaults to 4.0.
-            qkv_bias (bool, optional): Whether to add a learnable bias to
-            query, key and value. Defaults to True.
+            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to embedding dimensions. Defaults to 4.0.
+            qkv_bias (bool, optional): Whether to add a learnable bias to query, key and value. Defaults to True.
             drop (float, optional): Dropout rate. Defaults to 0.0.
-            attn_drop (float, optional): Dropout rate of attention weights.
-            Defaults to 0.0.
-            drop_path (float, optional): Stochastic depth rate. Defaults to
-            0.0.
-            norm_layer (torch.nn.Module, optional): Normalization layer.
-            Defaults to torch.nn.LayerNorm.
-            downsample (torch.nn.Module, optional): Downsample layer at the
-            end of the layer. Defaults to None.
-            pretrained_window_size (int, optional): Window size in
-            pre-training. Defaults to 0.
+            attn_drop (float, optional): Dropout rate of attention weights. Defaults to 0.0.
+            drop_path (float, optional): Stochastic depth rate. Defaults to 0.0.
+            norm_layer (torch.nn.Module, optional): Normalization layer. Defaults to torch.nn.LayerNorm.
+            downsample (torch.nn.Module, optional): Downsample layer at the end of the layer. Defaults to None.
+            pretrained_window_size (int, optional): Window size in pre-training. Defaults to 0.
         '''
         super().__init__()
 
@@ -611,23 +574,20 @@ class BasicLayer(nn.Module):
 
     def _init_respostnorm(self) -> None:
         '''Initialize normalization layers in SwinTransformerBlock1D.'''
-        # for blk in self.blocks:
-        #     nn.init.constant_(blk.norm1.bias, 0)
-        #     nn.init.constant_(blk.norm1.weight, 0)
-        #     nn.init.constant_(blk.norm2.bias, 0)
-        #     nn.init.constant_(blk.norm2.weight, 0)
-        pass
+        for blk in self.blocks:
+            nn.init.constant_(blk.norm1.bias, 0)
+            nn.init.constant_(blk.norm1.weight, 0)
+            nn.init.constant_(blk.norm2.bias, 0)
+            nn.init.constant_(blk.norm2.weight, 0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         '''Forward methods.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, len_sequence,
-            num_channel).
+            x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence,
-            num_channel).
+            torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
         '''
         for blk in self.blocks:
             x = blk(x)
@@ -643,15 +603,16 @@ class PatchEmbed(nn.Module):
 
     Inputs:
         x (torch.Tensor): Input tensor (size_batch, len_sequence, num_channel).
+
     Outputs:
         torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
     '''
 
     def __init__(
         self,
-        seq_len: int,
+        len_seq: int,
         patch_size: int,
-        in_chans: int,
+        in_chan: int,
         embed_dim: int,
         norm_layer: nn.Module = None,
     ) -> None:
@@ -660,22 +621,20 @@ class PatchEmbed(nn.Module):
         Args:
             len_seq (int): Length of sequences.
             patch_size (int, optional): Patch token size.
-            in_chans (int, optional): Number of input channels.
-            embed_dim (int, optional): Number of linear projection output
-            channels.
-            norm_layer (torch.nn.Module, optional): Normalization layer.
-            Defaults to None.
+            in_chan (int, optional): Number of input channels.
+            embed_dim (int, optional): Number of linear projection output channels.
+            norm_layer (torch.nn.Module, optional): Normalization layer. Defaults to None.
         '''
         super().__init__()
 
-        self.in_chans = in_chans
+        self.in_chan = in_chan
         self.embed_dim = embed_dim
         self.patch_size = patch_size
-        self.num_patches = math.ceil(seq_len / patch_size)
-        self.patches_resolution = math.ceil(seq_len / patch_size)
+        self.num_patches = math.ceil(len_seq / patch_size)
+        self.patches_resolution = math.ceil(len_seq / patch_size)
 
         self.proj = nn.Conv1d(
-            in_chans, embed_dim, kernel_size=patch_size, stride=patch_size
+            in_chan, embed_dim, kernel_size=patch_size, stride=patch_size
         )
 
         if norm_layer is not None:
@@ -687,12 +646,10 @@ class PatchEmbed(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, num_channel,
-            len_sequence).
+            x (torch.Tensor): Input tensor (size_batch, num_channel, len_sequence).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence,
-            num_channel).
+            torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
         '''
         x = self.proj(x).transpose(1, 2)  # B, L, C
 
@@ -713,8 +670,8 @@ class SwinTransformerV2(nn.Module):
 
     def __init__(
         self,
-        in_chans,
-        seq_len: int = 1024,
+        in_chan,
+        len_seq: int = 1024,
         patch_size: int = 2,
         embed_dim: int = 96,
         depths: list[int] = [2, 2, 2],
@@ -732,31 +689,21 @@ class SwinTransformerV2(nn.Module):
         '''Swin Transformer V2.
 
         Args:
-            in_chans (_type_): Number of input channels.
-            seq_len (int, optional): Length of sequences. Defaults to 256.
+            in_chan (_type_): Number of input channels.
+            len_seq (int, optional): Length of sequences. Defaults to 256.
             patch_size (int, optional): Patch size. Defaults to 2.
-            embed_dim (int, optional): Patch embedding dimension. Defaults to
-            96.
-            depths (list[int], optional): Depth of each Swin Transformer
-            layer. Defaults to [2, 2, 2].
-            num_heads (list[int], optional): Number of attention heads in
-            different layers. Defaults to [3, 6, 12].
+            embed_dim (int, optional): Patch embedding dimension. Defaults to 96.
+            depths (list[int], optional): Depth of each Swin Transformer layer. Defaults to [2, 2, 2].
+            num_heads (list[int], optional): Number of attention heads in different layers. Defaults to [3, 6, 12].
             window_size (int, optional): Window size. Defaults to 8.
-            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to
-            embedding dimensions. Defaults to 4.0.
-            qkv_bias (bool, optional): Whether to add a learnable bias to
-            query, key and value. Defaults to True.
+            mlp_ratio (float, optional): Ratio of MLP hidden dimensions to embedding dimensions. Defaults to 4.0.
+            qkv_bias (bool, optional): Whether to add a learnable bias to query, key and value. Defaults to True.
             drop_rate (float, optional): Dropout rate. Defaults to 0.0.
-            attn_drop_rate (float, optional): Dropout rate of attention
-            weights. Defaults to 0.0.
-            drop_path_rate (float, optional): Stochastic depth rate. Defaults
-            to 0.1.
-            norm_layer (torch.nn.Module, optional): Normalization layer.
-            Defaults to torch.nn.LayerNorm.
-            patch_norm (bool, optional): Whether to add normalization after
-            patch embedding. Defaults to True.
-            pretrained_window_sizes (list[int], optional): Pretrained window
-            sizes of each layer. Defaults to [0, 0, 0, 0].
+            attn_drop_rate (float, optional): Dropout rate of attention weights. Defaults to 0.0.
+            drop_path_rate (float, optional): Stochastic depth rate. Defaults to 0.1.
+            norm_layer (torch.nn.Module, optional): Normalization layer. Defaults to torch.nn.LayerNorm.
+            patch_norm (bool, optional): Whether to add normalization after patch embedding. Defaults to True.
+            pretrained_window_sizes (list[int], optional): Pretrained window sizes of each layer. Defaults to [0, 0, 0, 0].
         '''
         super().__init__()
 
@@ -768,9 +715,9 @@ class SwinTransformerV2(nn.Module):
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
-            seq_len=seq_len,
+            len_seq=len_seq,
             patch_size=patch_size,
-            in_chans=in_chans,
+            in_chan=in_chan,
             embed_dim=embed_dim,
             norm_layer=norm_layer if self.patch_norm else None,
         )
@@ -834,12 +781,10 @@ class SwinTransformerV2(nn.Module):
         '''Forward method.
 
         Args:
-            x (torch.Tensor): Input tensor (size_batch, num_channel,
-            len_sequence).
+            x (torch.Tensor): Input tensor (size_batch, num_channel, len_sequence).
 
         Returns:
-            torch.Tensor: Output tensor (size_batch, len_sequence,
-            num_channel).
+            torch.Tensor: Output tensor (size_batch, len_sequence, num_channel).
         '''
         x = self.patch_embed(x)
         x = self.pos_drop(x)
@@ -852,10 +797,19 @@ class SwinTransformerV2(nn.Module):
         return x
 
     @property
-    def size_out(self) -> int:
+    def dim_out(self) -> int:
         '''Get the number of output dimensions.
 
         Returns:
             int: Number of output dimensions.
         '''
         return self.embed_dim * 2 ** (self.num_layers - 1)
+
+    @property
+    def ratio_ds(self) -> int:
+        '''Get the downsample ratio between input length and output length.
+
+        Returns:
+            int: Downsample ratio.
+        '''
+        return 2**self.num_layers
