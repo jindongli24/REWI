@@ -1,6 +1,6 @@
-# Robust and Efficient Writer-Independent IMU-Based Handwriting Recognization
+# Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition
 
-This repository is the official implementation of "Robust and Efficient Writer-Independent IMU-Based Handwriting Recognization".
+This repository is the official implementation of "Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition".
 
 ## Introduction
 
