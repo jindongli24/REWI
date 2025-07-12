@@ -10,7 +10,7 @@ The paper introduces a handwriting recognition model for IMU-based data, leverag
 
 ### OnHW Word500 Right-Handed Dataset
 
-- Righthanded writer-dependent/writer-independent OnHW-word500 dataset
+- Righthanded writer-dependent/writer-independent OnHW-word500 dataset (WD: writer-dependent; WI: writer-independent)
 
 | model                | WD CER    | WD WER    | WI CER    | WI WER    | #Params   | MACs    |
 | -------------------- | --------- | --------- | --------- | --------- | --------- | ------- |
