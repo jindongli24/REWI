@@ -1,6 +1,6 @@
 # Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition
 
-This repository is the official implementation of "Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition".
+This repository is the official implementation of paper "Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition". The paper has been published on iWOAR 2025 - 10th international Workshop on Sensor-Based Activity Recognition and Artificial Intelligence.
 
 ## Introduction
 
@@ -84,3 +84,30 @@ python evaluate.py -c path_to_config_in_work_dir
 ## License
 
 This project is released under the MIT license. Please see the `LICENSE` file for more information.
+
+## Citiation
+
+If you find this repository helpful, please consider citing:
+
+```
+@inproceedings{10.1007/978-3-032-13312-0_16,
+  author    = {Li, Jindong
+               and Hamann, Tim
+               and Barth, Jens
+               and K{\"a}mpf, Peter
+               and Zanca, Dario
+               and Eskofier, Bj{\"o}rn},
+  editor    = {Durmaz Incel, {\"O}zlem
+               and Qin, Jingwen
+               and Bieber, Gerald
+               and Kuijper, Arjan},
+  title     = {Robust and Efficient Writer-Independent IMU-Based Handwriting Recognition},
+  booktitle = {Sensor-Based Activity Recognition and Artificial Intelligence},
+  year      = {2026},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  pages     = {261--286},
+  isbn      = {978-3-032-13312-0}
+}
+
+```
