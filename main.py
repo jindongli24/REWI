@@ -10,6 +10,7 @@ from torch.amp import GradScaler
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torch.utils.data import DataLoader
 
+from rewi.ctc_decoder import BestPath
 from rewi.dataset import HRDataset
 from rewi.dataset.utils import fn_collate
 from rewi.evaluate import evaluate
